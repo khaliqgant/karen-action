@@ -32,6 +32,34 @@ Your message here.
 >>>
 ```
 
+## File-Based Messaging
+
+For file-based messaging using `->relay-file:msg`, you must resolve the symlink first:
+
+```bash
+# CORRECT - Resolve symlink first
+TARGET_DIR=$(readlink -f "$AGENT_RELAY_OUTBOX") && mkdir -p "$TARGET_DIR" && cat > "$TARGET_DIR/msg" << 'EOF'
+TO: TargetAgent
+Your message here
+EOF
+echo "->relay-file:msg"
+```
+
+```bash
+# WRONG - Writing directly to symlink path fails
+cat > "$AGENT_RELAY_OUTBOX/msg" << 'EOF'
+TO: TargetAgent
+Your message here
+EOF
+echo "->relay-file:msg"
+```
+
+**Key points:**
+- Always resolve the symlink with `readlink -f "$AGENT_RELAY_OUTBOX"` before writing
+- Use separate commands: file creation in one command, marker output in another
+- No delays or sync commands needed between file creation and marker output
+- Use single quotes around `'EOF'` in heredoc to prevent variable expansion
+
 ## Communication Protocol
 
 **ACK immediately** - When you receive a task, acknowledge it before starting work:
